@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Office Leave Calculator</title>
 
 <style>
@@ -14,52 +15,47 @@
 }
 
 body{
-    font-family: Arial, sans-serif;
+    font-family:Arial, sans-serif;
     background:url('late.png') no-repeat center center fixed;
     background-size:cover;
+
+    min-height:100vh;
 
     display:flex;
     justify-content:center;
     align-items:center;
-    min-height:100vh;
 
     transition:all 0.8s ease;
 }
 
 .container{
-    width:500px;
-    background:rgba(255,255,255,0.92);
-    backdrop-filter:blur(5px);
-
+    background:rgba(255,255,255,0.93);
     padding:35px;
     border-radius:15px;
-
+    width:550px;
     text-align:center;
-
-    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
 
 h1{
-    color:#222;
     margin-bottom:15px;
 }
 
 .subtitle{
     color:#555;
-    line-height:1.7;
     margin-bottom:25px;
+    line-height:1.8;
 }
 
 .time-input{
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:8px;
+    gap:10px;
     margin-bottom:20px;
 }
 
-input,
-select{
+input,select{
     padding:10px;
     font-size:16px;
     border:1px solid #ccc;
@@ -75,7 +71,7 @@ button{
     background:#0078d4;
     color:white;
     border:none;
-    padding:12px 25px;
+    padding:12px 30px;
     border-radius:6px;
     cursor:pointer;
     font-size:16px;
@@ -86,16 +82,16 @@ button:hover{
 }
 
 .note{
-    margin-top:12px;
+    margin-top:10px;
     color:#666;
     font-size:14px;
-    font-style:italic;
 }
 
 #result{
     margin-top:25px;
-    font-size:22px;
+    font-size:20px;
     font-weight:bold;
+    line-height:1.8;
 }
 
 .success{
@@ -123,17 +119,11 @@ button:hover{
 
     <div class="time-input">
 
-        <input
-            type="number"
-            id="hour"
-            placeholder="HH">
+        <input type="number" id="hour" placeholder="HH">
 
         <span>:</span>
 
-        <input
-            type="number"
-            id="minute"
-            placeholder="MM">
+        <input type="number" id="minute" placeholder="MM">
 
         <select id="ampm">
             <option value="AM">AM</option>
@@ -147,7 +137,9 @@ button:hover{
     </button>
 
     <div class="note">
-        Please enter the timing in 12-hour format.
+        Please enter the timing in 12-hour format.<br>
+        Example: 09:00 AM, 12:45 PM, 00:45 AM<br>
+        Note: 00 is allowed only for AM.
     </div>
 
     <div id="result"></div>
@@ -156,109 +148,116 @@ button:hover{
 
 <script>
 
+const WORKING_HOURS = 8.5;
+
+function formatTime(dateObj){
+
+    let hours = dateObj.getHours();
+    let minutes = String(dateObj.getMinutes()).padStart(2,"0");
+
+    let ampm = hours >= 12 ? "PM" : "AM";
+
+    hours = hours % 12;
+
+    if(hours === 0){
+        hours = 12;
+    }
+
+    return hours + ":" + minutes + " " + ampm;
+}
+
+function showError(message){
+
+    document.body.style.backgroundImage =
+        "url('shout.png')";
+
+    document.getElementById("result").innerHTML =
+        "<span class='error'>❌ " + message + "</span>";
+}
+
 function calculateTime(){
 
-    let hourInput = document.getElementById("hour").value.trim();
-    let minuteInput = document.getElementById("minute").value.trim();
-    let ampm = document.getElementById("ampm").value;
+    let hourText =
+        document.getElementById("hour").value.trim();
 
-    // Blank validation
-    if(hourInput === "" || minuteInput === "")
-    {
-        document.body.style.backgroundImage = "url('shout.png')";
+    let minuteText =
+        document.getElementById("minute").value.trim();
 
-        document.getElementById("result").innerHTML =
-        "<span class='error'>❌ Please give the timing.</span>";
+    let ampm =
+        document.getElementById("ampm").value;
 
+    if(hourText === "" || minuteText === ""){
+        showError("Please give the timing.");
         return;
     }
 
-    let hour = Number(hourInput);
-    let minute = Number(minuteInput);
+    let hour = Number(hourText);
+    let minute = Number(minuteText);
 
-    // Minute validation
-    if(isNaN(minute) || minute < 0 || minute > 59)
-    {
-        document.body.style.backgroundImage = "url('shout.png')";
-
-        document.getElementById("result").innerHTML =
-        "<span class='error'>❌ Please give a valid timing.</span>";
-
+    if(isNaN(minute) || minute < 0 || minute > 59){
+        showError("Please give a valid timing.");
         return;
     }
 
-    // Hour Validation
-    if(ampm === "AM")
-    {
-        // Allow 00 to 12 for AM
-        if(isNaN(hour) || hour < 0 || hour > 12)
-        {
-            document.body.style.backgroundImage = "url('shout.png')";
+    if(ampm === "AM"){
 
-            document.getElementById("result").innerHTML =
-            "<span class='error'>❌ Please give a valid timing.</span>";
-
+        if(isNaN(hour) || hour < 0 || hour > 12){
+            showError("Please give a valid timing.");
             return;
         }
-    }
-    else
-    {
-        // Allow 01 to 12 for PM
-        if(isNaN(hour) || hour < 1 || hour > 12)
-        {
-            document.body.style.backgroundImage = "url('shout.png')";
 
-            document.getElementById("result").innerHTML =
-            "<span class='error'>❌ Please give a valid timing.</span>";
+    }else{
 
+        if(isNaN(hour) || hour < 1 || hour > 12){
+            showError("Please give a valid timing.");
             return;
         }
     }
 
-    // Convert to 24-hour format
+    // Convert to 24-hour clock
 
-    if(ampm === "AM")
-    {
-        if(hour === 0 || hour === 12)
-        {
+    if(ampm === "AM"){
+
+        if(hour === 0 || hour === 12){
             hour = 0;
         }
-    }
-    else
-    {
-        if(hour !== 12)
-        {
+
+    }else{
+
+        if(hour !== 12){
             hour += 12;
         }
     }
 
-    let time = new Date();
+    let entryTime = new Date();
 
-    time.setHours(hour);
-    time.setMinutes(minute);
-    time.setSeconds(0);
+    entryTime.setHours(hour);
+    entryTime.setMinutes(minute);
+    entryTime.setSeconds(0);
 
-    // Add 8 hours 30 minutes
-    time.setMinutes(time.getMinutes() + 510);
+    let halfDayTime = new Date(entryTime);
+    halfDayTime.setMinutes(
+        halfDayTime.getMinutes() +
+        ((WORKING_HOURS / 2) * 60)
+    );
 
-    let leaveHour = time.getHours();
-    let leaveMinute = String(time.getMinutes()).padStart(2,"0");
+    let fullDayTime = new Date(entryTime);
+    fullDayTime.setMinutes(
+        fullDayTime.getMinutes() +
+        (WORKING_HOURS * 60)
+    );
 
-    let leaveAMPM = leaveHour >= 12 ? "PM" : "AM";
-
-    leaveHour = leaveHour % 12;
-
-    if(leaveHour === 0)
-    {
-        leaveHour = 12;
-    }
-
-    document.body.style.backgroundImage = "url('leave.png')";
+    document.body.style.backgroundImage =
+        "url('leave.png')";
 
     document.getElementById("result").innerHTML =
-    "<span class='success'>✅ You can leave the office by<br><br>" +
-    leaveHour + ":" + leaveMinute + " " + leaveAMPM +
-    "</span>";
+    `
+    <span class="success">
+        ✅ Half Day Time: ${formatTime(halfDayTime)}
+        <br><br>
+        ✅ You can leave the office by: ${formatTime(fullDayTime)}
+    </span>
+    `;
 }
 
 </script>
