@@ -1,2 +1,2 @@
-# Attendance-Time-Calculator
-Attendance Time Calculator
+# Daily-Work-Planner
+Daily Work Planner
