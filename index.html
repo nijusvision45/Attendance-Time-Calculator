@@ -28,9 +28,8 @@ body{
 
 .container{
     width:450px;
-
     background:rgba(255,255,255,0.92);
-    backdrop-filter:blur(6px);
+    backdrop-filter:blur(5px);
 
     padding:35px;
     border-radius:15px;
@@ -117,8 +116,6 @@ button:hover{
         <input
             type="number"
             id="hour"
-            min="1"
-            max="12"
             placeholder="HH">
 
         <span>:</span>
@@ -126,8 +123,6 @@ button:hover{
         <input
             type="number"
             id="minute"
-            min="0"
-            max="59"
             placeholder="MM">
 
         <select id="ampm">
@@ -149,86 +144,96 @@ button:hover{
 
 function calculateTime(){
 
-    let hourField = document.getElementById("hour");
-    let minuteField = document.getElementById("minute");
-
-    let hour = hourField.value;
-    let minute = minuteField.value;
+    let hourInput = document.getElementById("hour").value.trim();
+    let minuteInput = document.getElementById("minute").value.trim();
     let ampm = document.getElementById("ampm").value;
 
-    // Blank field validation
-    if(hour === "" || minute === "")
+    // Blank validation
+    if(hourInput === "" || minuteInput === "")
     {
-        document.body.style.backgroundImage =
-            "url('shout.png')";
+        document.body.style.backgroundImage = "url('shout.png')";
 
         document.getElementById("result").innerHTML =
-            "<span class='error'>❌ Please give the timing.</span>";
+        "<span class='error'>❌ Please give the timing.</span>";
 
         return;
     }
 
-    hour = parseInt(hour);
-    minute = parseInt(minute);
+    let hour = parseInt(hourInput);
+    let minute = parseInt(minuteInput);
+
+    // Validation Rules
+    // AM => Allow 00 to 12
+    // PM => Allow 01 to 12 only
+
+    let validHour = false;
+
+    if(ampm === "AM"){
+        validHour = (hour >= 0 && hour <= 12);
+    }
+    else{
+        validHour = (hour >= 1 && hour <= 12);
+    }
 
     if(
-        hour < 1 ||
-        hour > 12 ||
+        !validHour ||
+        isNaN(minute) ||
         minute < 0 ||
         minute > 59
     )
     {
-        document.body.style.backgroundImage =
-            "url('shout.png')";
+        document.body.style.backgroundImage = "url('shout.png')";
 
         document.getElementById("result").innerHTML =
-            "<span class='error'>❌ Please give a valid timing.</span>";
+        "<span class='error'>❌ Please give a valid timing.</span>";
 
         return;
     }
 
-    // Convert to 24-hour clock
+    // Convert to 24-hour format
 
-    if(ampm === "PM" && hour !== 12)
-    {
-        hour += 12;
-    }
+    if(ampm === "AM"){
 
-    if(ampm === "AM" && hour === 12)
-    {
-        hour = 0;
+        // Treat 00:xx AM same as 12:xx AM
+        if(hour === 12 || hour === 0){
+            hour = 0;
+        }
+
+    }else{
+
+        // PM
+        if(hour !== 12){
+            hour += 12;
+        }
     }
 
     let time = new Date();
 
     time.setHours(hour);
     time.setMinutes(minute);
+    time.setSeconds(0);
 
-    // Add 8 hours 30 minutes
+    // Add 8 Hours 30 Minutes
     time.setMinutes(time.getMinutes() + 510);
 
     let leaveHour = time.getHours();
     let leaveMinute = String(time.getMinutes()).padStart(2,"0");
 
-    let leaveAMPM =
-        leaveHour >= 12 ? "PM" : "AM";
+    let leaveAMPM = leaveHour >= 12 ? "PM" : "AM";
 
     leaveHour = leaveHour % 12;
 
-    if(leaveHour === 0)
-    {
+    if(leaveHour === 0){
         leaveHour = 12;
     }
 
-    // Success image
-    document.body.style.backgroundImage =
-        "url('leave.png')";
+    // Success background
+    document.body.style.backgroundImage = "url('leave.png')";
 
     document.getElementById("result").innerHTML =
-        "<span class='success'>✅ You can leave the office by<br><br>"
-        + leaveHour + ":" + leaveMinute + " "
-        + leaveAMPM +
-        "</span>";
+    "<span class='success'>✅ You can leave the office by<br><br>"
+    + leaveHour + ":" + leaveMinute + " " + leaveAMPM +
+    "</span>";
 }
 
 </script>
